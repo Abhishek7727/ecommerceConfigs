@@ -1,0 +1,66 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: gateway-server
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: auth-server
+              uri: lb://auth-server
+              predicates:
+                - Path=/api/v1/auth/**
+              filters:
+                - name: AuthenticationFilter
+                  args:
+                    requiredRole: ANY
+              
+            
+            - id: product-server
+              uri: lb://product-server
+              predicates:
+                - Path=/api/v1/product/**
+              filters:
+                - name: AuthenticationFilter
+                  args:
+                    requiredRole: PRODUCER
+            
+            - id: order-server
+              uri: lb://order-server
+              predicates:
+                - Path=/api/v1/order/**
+              filters:
+                - name: AuthenticationFilter
+                  args:
+                    requiredRole: CONSUMER
+            
+            - id: payment-server
+              uri: lb://payment-server
+              predicates:
+                - Path=/api/v1/payment/**
+              filters:
+                - name: AuthenticationFilter
+                  args:
+                    requiredRole: CONSUMER
+                    
+          discovery:
+            locator:
+              enabled: true
+              lowerCaseServiceId: true
+
+# Uncomment the following lines if you want to use a custom filter  
+              # filters:
+              #   - name: AuthenticationFilter
+              #     args: 
+              #       requiredRole: PRODUCER
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
